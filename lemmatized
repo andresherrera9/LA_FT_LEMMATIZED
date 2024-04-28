@@ -1,0 +1,74 @@
+import pandas as pd
+import spacy
+import nltk as nltk
+from nltk.corpus import stopwords
+from spacy.lang.es import Spanish
+nltk.download('stopwords')
+
+
+important_words_lemmatized = ['promover', 'inducir', 'constreñir', 'facilitar', 'financiar', 'colaborar', 
+     'participar', 'entrada', 'salida', 'persona', 'cumplimiento', 'requisito', 
+     'legal', 'animo', 'lucrarse', 'provecho', 'captar', 'trasladar', 'acoger', 'recibir',
+     'explotacion', 'prostitucion', 'ajena', 'sexual', 'trabajo', 'servicio', 'esclavitud',
+     'practica', 'análogo', 'servidumbre', 'mendicidad', 'matrimonio', 'servil', 'organo',
+     'turismo', 'arrebatar', 'sustraer', 'retener', 'ocultar', 'libertad', 'publicitario', 
+     'politico', 'derrocar', 'gobierno', 'nacional', 'suprimir', 'modificar', 'regimen',
+     'constitucional', 'fabricacion', 'trafico', 'porte', 'arma', 'municion', 'uso', 
+     'privativo', 'fuerza', 'armada', 'quimica', 'biologica', 'nuclear', 'estupefaciente', 
+     'fondo', 'captado', 'operacion', 'autorizado', 'accionista', 'asociado', 'captacion', 
+     'masivo', 'habitual', 'dinero', 'manipulacion', 'fraudulento', 'especie', 'inscrito', 
+     'registro', 'valor', 'intermediario', 'peculado', 'apropiacion', 'aplicacion', 
+     'oficial', 'diferente', 'culposo', 'recurso', 'seguridad', 'social', 'agente', 
+     'retenedor', 'recaudador', 'destino', 'tesoro', 'estimulo', 'beneficio', 'fraude', 
+     'subvencion', 'cohecho', 'propio', 'impropio', 'dar', 'ofrecer', 'violacion', 
+     'inhabilidad', 'incompatibilidad', 'contrato', 'acuerdo', 'restrictivo', 'competencia',
+     'influencia', 'servidor', 'publico', 'particular', 'enriquecimiento', 'ilicito',
+     'prevaricato', 'accion', 'omision', 'abuso', 'autoridad', 'arbitrario', 'injusto',
+     'revelacion', 'secreto', 'utilizacion', 'asunto', 'someter', 'privilegiado', 
+     'asesoramiento', 'actuacion', 'ilegal', 'intervencion', 'politica', 'empleo',
+     'usurpacion', 'simulacion', 'investidura', 'cargo', 'circunstancia', 'agravacion', 
+     'punitivo', 'terrorista', 'violencia', 'perturbacion', 'soborno', 'asociacion', 
+     'delito', 'administracion', 'activo', 'pasivo', 'inexistente', 'defraudacion', 
+     'evasion', 'tributario', 'concierto', 'delinquir', 'trafico', 'trata', 'extorsion',
+     'rebelion', 'financiacion', 'actividad', 'terrorismo', 'droga', 'estupefaciente', 
+     'sicotropico', 'sistema', 'financiero', 'administracion', 'publico', 'nino', 'nina', 
+     'adolescente', 'contrabando', 'fraude', 'aduanero', 'favorecimiento', 'facilitacion', 
+     'hidrocarburo', 'derivado', 'gao', 'grupo', 'armar', 'organizar', 'farc', 'clan del golfo', 
+     'agc', 'autodefensas gaitanistas', 'gaor', 'gao-r', 'disidencia', 'segunda marquetalia',
+     'emc', 'estado mayor central', 'cocaina', 'coca', 'marihuana', 'extasis', 'cigarrillo','pitufeo']
+
+
+
+def clean_text(text):
+    # Convertir a minúsculas y quitar tildes
+    text = text.lower()
+    text = text.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
+    print(text)
+    
+    # Tokenizar el texto
+    doc = nlp(text)
+    
+    # Lematizar y quitar stopwords
+    lemmatized_tokens = [token.lemma_ for token in doc if token.lemma_ not in stop_words]
+    
+    # Filtrar solo las palabras que están en important_words_lemmatized
+    filtered_tokens = [token for token in lemmatized_tokens if token in important_words_lemmatized]
+    print(filtered_tokens)
+    # Unir los tokens filtrados en un string nuevamente
+    filtered_text = " ".join(filtered_tokens)
+    
+    return filtered_text
+
+
+# Load CSV file
+df = pd.read_csv("ros.csv", sep=";", encoding="UTF-8")
+new_header = df.iloc[0]  # grab the first row for the header
+df = df[1:]  # take the data less the header row
+df.columns = new_header
+df = df[["ROS", "motivo_sospecha"]]
+df["motivo_sospecha"] = df["motivo_sospecha"].astype(str)
+df.head()
+
+# Apply the clean_text function to the "motivo_sospecha" column
+df["motivo_sospecha"] = df["motivo_sospecha"].apply(clean_text)
+df.to_csv("ros_lemmatized.csv")
